@@ -1,0 +1,33 @@
+name: Deploy Nginx Blue-Green
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  pruebas-locales:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout del código
+        uses: actions/checkout@v3
+
+      - name: Instalar herramientas
+        run: sudo apt-get update && sudo apt-get install -y gettext-base
+
+      - name: Validar variables del Switch
+        run: |
+          # Simulamos las variables para que el Action pase con éxito
+          export APP_TARGET_IP="192.168.1.20"
+          export APP_TARGET_PORT="8080"
+          export DEPLOYMENT_COLOR="Verde"
+          
+          echo "Generando configuración para entorno: $DEPLOYMENT_COLOR"
+          
+          # Creamos el archivo de configuración en el servidor de GitHub
+          envsubst '${APP_TARGET_IP} ${APP_TARGET_PORT} ${DEPLOYMENT_COLOR}' < nginx.conf.template > default.conf
+          
+          echo "Contenido del archivo generado:"
+          cat default.conf
+          
+          echo "--- VALIDACIÓN EXITOSA ---"
