@@ -6,21 +6,27 @@ on:
       - main
 
 jobs:
-  deploy:
+  build-and-test:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Deploy to VPS via SSH
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.GCP_HOST }}
-          username: ${{ secrets.GCP_USERNAME }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          script: |
-            # Entrar a la carpeta donde están tus archivos en la VM
-            cd ~
-            # Asegurar permisos y ejecutar el switch
-            chmod +x switch.sh
-            ./switch.sh
+      - name: Instalar dependencias
+        run: sudo apt-get install -y gettext-base nginx
+
+      - name: Validar Sintaxis de Plantilla y Script
+        run: |
+          # Simulamos la ejecución para validar que el script funciona
+          export APP_TARGET_IP="192.168.1.20"
+          export APP_TARGET_PORT="8080"
+          export DEPLOYMENT_COLOR="Verde"
+          
+          # Probamos que envsubst funcione con tu plantilla
+          envsubst '${APP_TARGET_IP} ${APP_TARGET_PORT} ${DEPLOYMENT_COLOR}' < nginx.conf.template > default.conf
+          
+          echo "Archivo generado exitosamente:"
+          cat default.conf
+          
+          # Verificamos que el archivo tenga el color correcto
+          grep "X-Deployment-Color Verde" default.conf
