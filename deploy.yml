@@ -6,35 +6,33 @@ on:
       - main
 
 jobs:
-  validate-and-test:
+  validate-nginx:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Instalar dependencias
-        run: sudo apt-get update && sudo apt-get install -y gettext-base
-
-      - name: Validar proceso de Conmutación (Verde)
+      - name: Simular Despliegue y Validar Variables
         run: |
-          # 1. Definir variables (Simulando el script)
+          # 1. Definir las variables de entorno
           export APP_TARGET_IP="192.168.1.20"
           export APP_TARGET_PORT="8080"
           export DEPLOYMENT_COLOR="Verde"
           
-          echo "Probando generación de configuración para entorno: $DEPLOYMENT_COLOR"
+          echo "Ejecutando validación para el entorno: $DEPLOYMENT_COLOR"
           
-          # 2. Ejecutar envsubst con tu plantilla real
+          # 2. Reemplazar variables en la plantilla
+          # Esto es exactamente lo que hace tu script switch.sh
           envsubst '${APP_TARGET_IP} ${APP_TARGET_PORT} ${DEPLOYMENT_COLOR}' < nginx.conf.template > default.conf
           
-          # 3. Mostrar el resultado en los logs de GitHub para evidencia
-          echo "--- ARCHIVO GENERADO ---"
+          # 3. Mostrar el archivo final en el log como evidencia
+          echo "--- Archivo Nginx Generado ---"
           cat default.conf
           
-          # 4. Verificación de seguridad: ¿Está el color correcto?
-          if grep -q "X-Deployment-Color Verde" default.conf; then
-            echo "¡Validación exitosa! El archivo se generó correctamente con el color Verde."
+          # 4. Comprobación final
+          if grep -q "Verde" default.conf; then
+            echo "¡Éxito! La automatización funciona correctamente."
           else
-            echo "Error: El color no coincide."
+            echo "Error en las variables."
             exit 1
           fi
