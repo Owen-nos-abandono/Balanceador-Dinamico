@@ -6,27 +6,35 @@ on:
       - main
 
 jobs:
-  build-and-test:
+  validate-and-test:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
       - name: Instalar dependencias
-        run: sudo apt-get install -y gettext-base nginx
+        run: sudo apt-get update && sudo apt-get install -y gettext-base
 
-      - name: Validar Sintaxis de Plantilla y Script
+      - name: Validar proceso de Conmutación (Verde)
         run: |
-          # Simulamos la ejecución para validar que el script funciona
+          # 1. Definir variables (Simulando el script)
           export APP_TARGET_IP="192.168.1.20"
           export APP_TARGET_PORT="8080"
           export DEPLOYMENT_COLOR="Verde"
           
-          # Probamos que envsubst funcione con tu plantilla
+          echo "Probando generación de configuración para entorno: $DEPLOYMENT_COLOR"
+          
+          # 2. Ejecutar envsubst con tu plantilla real
           envsubst '${APP_TARGET_IP} ${APP_TARGET_PORT} ${DEPLOYMENT_COLOR}' < nginx.conf.template > default.conf
           
-          echo "Archivo generado exitosamente:"
+          # 3. Mostrar el resultado en los logs de GitHub para evidencia
+          echo "--- ARCHIVO GENERADO ---"
           cat default.conf
           
-          # Verificamos que el archivo tenga el color correcto
-          grep "X-Deployment-Color Verde" default.conf
+          # 4. Verificación de seguridad: ¿Está el color correcto?
+          if grep -q "X-Deployment-Color Verde" default.conf; then
+            echo "¡Validación exitosa! El archivo se generó correctamente con el color Verde."
+          else
+            echo "Error: El color no coincide."
+            exit 1
+          fi
